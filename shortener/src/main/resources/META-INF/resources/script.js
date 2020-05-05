@@ -3,7 +3,14 @@ function getShort() {
     var now = new Date();
 
     obj.custom = $('#custom_link').val();
-    obj.expiry = $('#custom_deadline').val() + "T" + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+
+    if ($('#custom_deadline').val() === "") {
+        now.setDate(now.getDate() + 1);
+    } else {
+        now = new Date($('#custom_deadline').val());
+    }
+
+    obj.expiry = now.toISOString();
     obj.original = $('#link').val();
     obj.shortened = "";
 
@@ -30,7 +37,8 @@ function getShort() {
             if ($('#link_expiry').hasClass('d-none'))
                 $('#link_expiry').toggleClass('d-none');
 
-            $('#shortened_link').html('Short link: <code>' + res.shortened_url + '</code>');
+            $('#generated_link').val('http://qshift-myproject.192.168.0.20.nip.io/' + res.shortened_url)
+            $('#shortened_link').html('Short link:</h2><h2><code><a id="generated_link" href="http://qshift-myproject.192.168.0.20.nip.io/' + res.shortened_url + '">http://qshift-myproject.192.168.0.20.nip.io/' + res.shortened_url + '</a></code><button class="btn btn-outline-secondary ml-3" onclick="copyText($(\'#generated_link\').html())">Copy</button>');
             $('#link_expiry').html('Expires: <code>' + res.expiration_date + '</code>')
         },
         error: function (res) {
@@ -65,6 +73,8 @@ function getAnalytics() {
             console.log(res);
             if ($('#linkAnalytics').hasClass('d-none'))
                 $('#linkAnalytics').toggleClass('d-none');
+            if (!($('#errorAnalytics').hasClass('d-none')))
+                $('#errorAnalytics').toggleClass('d-none')
 
             $('#short_link').html('<code>Link: </code>' + $('#shortlink').val());
             $('#all_clicks').html('<code>Clicks: </code>' + res.all_clicks);
@@ -75,9 +85,18 @@ function getAnalytics() {
                 $('#linkAnalytics').toggleClass('d-none');
             if ($('#errorAnalytics').hasClass('d-none'))
                 $('#errorAnalytics').toggleClass('d-none')
-            
+
             $('#status_code').html('Status Code: <code>' + res.status + '</code>');
             $('#description').html(res.statusText + ': <code>' + res.responseText + '</code>');
         }
     });
+}
+
+function copyText(str) {
+    var el = document.createElement('textarea');
+    el.value = str;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
 }

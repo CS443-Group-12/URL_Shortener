@@ -189,29 +189,39 @@ public class ShortenerResource  {
     @Timed(name = "b2cAnalyticsTimer", description = "A measure of how long it takes to serve B2C analytics request.", unit = MetricUnits.MILLISECONDS)
     public Response getAnalyticsB2c(@PathParam String link) throws Exception {
         System.out.println("Received GET_ANALYTICS request :: B2C");
+        boolean exists = false;
         if (!connectionFlag) {
             conn = defaultDataSource.getConnection();
             connectionFlag = true;
         }
         // conn = DriverManager.getConnection(dbLink);
         st = conn.createStatement();
-        rs = st.executeQuery("SELECT COUNT( *) FROM url_analytics WHERE short = '" + link + "'");
+        rs = st.executeQuery("SELECT * FROM url_list WHERE short = '" + link + "'");
 
         while(rs.next()) {
-            System.out.println(rs.getString(1));
-            if (rs.getString(1) != null) {
-                String data = "{\n\"all_clicks\": " + rs.getString(1) + "\n}";
-                
-                // rs.close();
-                // st.close();
-                
-                return Response.ok(data, MediaType.APPLICATION_JSON).build();
+            if (rs.getString("short").equals(link));
+                exists = true;
+        }
+
+        if (exists) {
+            rs = st.executeQuery("SELECT COUNT( *) FROM url_analytics WHERE short = '" + link + "'");
+
+            while(rs.next()) {
+                System.out.println(rs.getString(1));
+                if (rs.getString(1) != null) {
+                    String data = "{\n\"all_clicks\": " + rs.getString(1) + "\n}";
+                    
+                    // rs.close();
+                    // st.close();
+                    
+                    return Response.ok(data, MediaType.APPLICATION_JSON).build();
+                }
             }
         }
 
         // rs.close();
         // st.close();
-
+       
         return Response.status(Response.Status.NOT_FOUND).entity("Provided short link is expired or invalid.").build();
     }
 
